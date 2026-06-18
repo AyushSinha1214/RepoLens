@@ -28,6 +28,7 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
     description: response.data.description,
     stars: response.data.stargazers_count,
     forks: response.data.forks_count,
+    watchers: response.data.watchers_count,
     issues: response.data.open_issues_count,
     language: response.data.language,
     createdAt: response.data.created_at,
