@@ -13,6 +13,9 @@ function Results() {
   useEffect(() => {
     const fetchRepo = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const response = await axios.get(
           `http://localhost:5000/api/repo/${owner}/${repo}`
         );
@@ -31,7 +34,7 @@ function Results() {
   if (loading) {
     return (
       <div className="page">
-        <h1 style={{ padding: "40px" }}>Loading...</h1>
+        <h1 className="status-text">Loading...</h1>
       </div>
     );
   }
@@ -39,7 +42,10 @@ function Results() {
   if (error) {
     return (
       <div className="page">
-        <h1 style={{ padding: "40px" }}>{error}</h1>
+        <h1 className="status-text">{error}</h1>
+        <Link to="/" className="back-link">
+          ← Back to search
+        </Link>
       </div>
     );
   }
@@ -47,74 +53,97 @@ function Results() {
   return (
     <div className="page">
       <nav className="navbar">
-        <Link
-          to="/"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontSize: "20px",
-            fontWeight: "bold",
-          }}
-        >
+        <Link to="/" className="logo">
+          <span className="logo-dot"></span>
           RepoLens
         </Link>
+        <div className="nav-links">
+          <a href="#">Dashboard</a>
+          <a href="#">Explore</a>
+          <a href="#">Docs</a>
+        </div>
+        <div className="nav-actions">
+          <button className="btn-outline">Login</button>
+          <button className="btn-primary">Register</button>
+        </div>
       </nav>
 
-      <section className="search-section">
-        <div className="result-card">
-          <div className="result-header">
-            <h2>{repoData.name}</h2>
-
-            <a
-              href={repoData.url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View on GitHub →
-            </a>
+      <div className="results-body">
+        <aside className="sidebar">
+          <div className="repo-header">
+            <div className="repo-avatar">🔭</div>
+            <p className="repo-name">{repoData.name}</p>
+            <p className="repo-owner">{owner}</p>
+            {repoData.description && (
+              <p className="repo-desc">{repoData.description}</p>
+            )}
+            {repoData.language && (
+              <div className="tag-row">
+                <span className="tag">{repoData.language}</span>
+              </div>
+            )}
           </div>
 
-          <p className="result-desc">
-            {repoData.description}
-          </p>
+          <hr className="divider" />
 
-          <div className="stat-grid">
-            <div className="stat">
-              <p className="stat-val">{repoData.stars}</p>
-              <p className="stat-key">⭐ Stars</p>
+          <div className="meta-list">
+            <div className="meta-item">
+              📅 Created {new Date(repoData.createdAt).toLocaleDateString()}
             </div>
-
-            <div className="stat">
-              <p className="stat-val">{repoData.forks}</p>
-              <p className="stat-key">🍴 Forks</p>
-            </div>
-
-            <div className="stat">
-              <p className="stat-val">{repoData.watchers}</p>
-              <p className="stat-key">👀 Watchers</p>
-            </div>
-
-            <div className="stat">
-              <p className="stat-val">{repoData.issues}</p>
-              <p className="stat-key">🐞 Issues</p>
+            <div className="meta-item">
+              🔄 Updated {new Date(repoData.updatedAt).toLocaleDateString()}
             </div>
           </div>
 
-          <div className="meta-row">
-            <span className="tag">{repoData.language}</span>
+          <a
+            href={repoData.url}
+            target="_blank"
+            rel="noreferrer"
+            className="github-link"
+          >
+            View on GitHub →
+          </a>
+        </aside>
 
-            <span className="meta-text">
-              Created{" "}
-              {new Date(repoData.createdAt).toLocaleDateString()}
-            </span>
+        <main className="main-panel">
+          <div className="section-title">Repository overview</div>
 
-            <span className="meta-text">
-              Updated{" "}
-              {new Date(repoData.updatedAt).toLocaleDateString()}
-            </span>
+          <div className="overview-grid">
+            <div className="overview-card">
+              <p className="overview-label">Open Issues</p>
+              <p className="overview-val">{repoData.issues}</p>
+            </div>
+            <div className="overview-card">
+              <p className="overview-label">Total Forks</p>
+              <p className="overview-val">{repoData.forks}</p>
+            </div>
+            <div className="overview-card">
+              <p className="overview-label">Watchers</p>
+              <p className="overview-val">{repoData.watchers}</p>
+            </div>
+            <div className="overview-card">
+              <p className="overview-label">Stars</p>
+              <p className="overview-val">{repoData.stars}</p>
+            </div>
           </div>
-        </div>
-      </section>
+
+          <div className="section-title">About</div>
+          <div className="about-card">
+            <p>
+              {repoData.description || "No description provided for this repository."}
+            </p>
+            <div className="about-meta">
+              <span className="tag">{repoData.language || "Unknown"}</span>
+              <span className="meta-text">
+                Created {new Date(repoData.createdAt).toLocaleDateString()}
+              </span>
+              <span className="meta-text">
+                Last updated {new Date(repoData.updatedAt).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
