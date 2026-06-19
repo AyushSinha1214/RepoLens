@@ -3,37 +3,90 @@ import { useNavigate } from "react-router-dom";
 import "../App.css";
 
 function Home() {
-  const [repo, setRepo] = useState("");
-  const [repoLink, setRepoLink] = useState("");
-  const [activeTab, setActiveTab] = useState("individual");
+ const [repo, setRepo] = useState("");
+const [repoLink, setRepoLink] = useState("");
+const [activeTab, setActiveTab] = useState("individual");
+
+const [recentSearches, setRecentSearches] = useState(() => {
+  return JSON.parse(localStorage.getItem("recentSearches")) || [];
+});
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    const [owner, repoName] = repo.split("/");
+  const [owner, repoName] = repo.split("/");
+
+  if (!owner || !repoName) {
+    alert("Enter repository in owner/repository format");
+    return;
+  }
+
+  const repoString = `${owner}/${repoName}`;
+
+  const updatedSearches = [
+    repoString,
+    ...recentSearches.filter((item) => item !== repoString),
+  ].slice(0, 5);
+
+  setRecentSearches(updatedSearches);
+
+  localStorage.setItem(
+    "recentSearches",
+    JSON.stringify(updatedSearches)
+  );
+
+  navigate(`/results/${owner}/${repoName}`);
+};
+  const handleLinkSearch = () => {
+  try {
+    const cleaned = repoLink
+      .replace("https://github.com/", "")
+      .replace(/\/$/, "");
+
+    const [owner, repoName] = cleaned.split("/");
 
     if (!owner || !repoName) {
-      alert("Enter repository in owner/repository format");
+      alert("Enter a valid GitHub repository link");
       return;
     }
 
+    const repoString = `${owner}/${repoName}`;
+
+    const updatedSearches = [
+      repoString,
+      ...recentSearches.filter((item) => item !== repoString),
+    ].slice(0, 5);
+
+    setRecentSearches(updatedSearches);
+
+    localStorage.setItem(
+      "recentSearches",
+      JSON.stringify(updatedSearches)
+    );
+
     navigate(`/results/${owner}/${repoName}`);
-  };
+  } catch {
+    alert("Enter a valid GitHub repository link");
+  }
+};
 
-  const handleLinkSearch = () => {
-    try {
-      const cleaned = repoLink.replace("https://github.com/", "").replace(/\/$/, "");
-      const [owner, repoName] = cleaned.split("/");
+const handleRecentClick = (repoString) => {
+  const [owner, repoName] = repoString.split("/");
 
-      if (!owner || !repoName) {
-        alert("Enter a valid GitHub repository link");
-        return;
-      }
+  navigate(`/results/${owner}/${repoName}`);
+};
 
-      navigate(`/results/${owner}/${repoName}`);
-    } catch {
-      alert("Enter a valid GitHub repository link");
-    }
-  };
+const removeRecent = (repoString) => {
+  const updated = recentSearches.filter(
+    (item) => item !== repoString
+  );
+
+  setRecentSearches(updated);
+
+  localStorage.setItem(
+    "recentSearches",
+    JSON.stringify(updated)
+  );
+};
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -151,18 +204,37 @@ function Home() {
         )}
 
         <div className="recent">
-          <p className="recent-label">Recent</p>
-          <div className="chips">
-            <div className="chip">
-              ayushsinha1214/repolens
-              <button className="chip-x">✕</button>
-            </div>
-            <div className="chip">
-              facebook/react
-              <button className="chip-x">✕</button>
-            </div>
-          </div>
+  <p className="recent-label">Recent</p>
+
+  <div className="chips">
+    {recentSearches.length === 0 ? (
+      <p style={{ color: "#64748b", fontSize: "12px" }}>
+        No recent searches yet
+      </p>
+    ) : (
+      recentSearches.map((item) => (
+        <div
+          key={item}
+          className="chip"
+          style={{ cursor: "pointer" }}
+          onClick={() => handleRecentClick(item)}
+        >
+          {item}
+
+          <button
+            className="chip-x"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeRecent(item);
+            }}
+          >
+            ✕
+          </button>
         </div>
+      ))
+    )}
+  </div>
+</div>
 
         <div className="results-preview">
           <p className="section-title">Results</p>
