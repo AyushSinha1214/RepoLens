@@ -9,44 +9,69 @@ app.use(express.json());
 
 // Test Route
 app.get("/", (req, res) => {
-    res.json({
-        message: "RepoLens Backend Running 🚀"
-    });
+  res.json({
+    message: "RepoLens Backend Running 🚀",
+  });
 });
 
-// GitHub Repo Route
+// Repository Details Route
 app.get("/api/repo/:owner/:repo", async (req, res) => {
-    try {
-        const { owner, repo } = req.params;
+  try {
+    const { owner, repo } = req.params;
 
-        const response = await axios.get(
-            `https://api.github.com/repos/${owner}/${repo}`
-        );
+    const response = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`
+    );
 
-        const repoData = {
-    name: response.data.name,
-    description: response.data.description,
-    stars: response.data.stargazers_count,
-    forks: response.data.forks_count,
-    watchers: response.data.watchers_count,
-    issues: response.data.open_issues_count,
-    language: response.data.language,
-    createdAt: response.data.created_at,
-    updatedAt: response.data.updated_at,
-    url: response.data.html_url
-};
+    const repoData = {
+      name: response.data.name,
+      description: response.data.description,
+      stars: response.data.stargazers_count,
+      forks: response.data.forks_count,
+      watchers: response.data.watchers_count,
+      issues: response.data.open_issues_count,
+      language: response.data.language,
+      createdAt: response.data.created_at,
+      updatedAt: response.data.updated_at,
+      url: response.data.html_url,
+    };
 
-res.json(repoData);
+    res.json(repoData);
+  } catch (error) {
+    res.status(404).json({
+      message: "Repository not found",
+    });
+  }
+});
 
-    } catch (error) {
-        res.status(404).json({
-            message: "Repository not found"
-        });
-    }
+// Contributors Route
+app.get("/api/contributors/:owner/:repo", async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contributors`
+    );
+
+    const contributors = response.data
+      .slice(0, 5)
+      .map((user) => ({
+        login: user.login,
+        avatar: user.avatar_url,
+        contributions: user.contributions,
+        profile: user.html_url,
+      }));
+
+    res.json(contributors);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch contributors",
+    });
+  }
 });
 
 const PORT = 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
