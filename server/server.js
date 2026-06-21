@@ -70,6 +70,37 @@ app.get("/api/contributors/:owner/:repo", async (req, res) => {
   }
 });
 
+// Languages Route
+app.get("/api/languages/:owner/:repo", async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/languages`
+    );
+
+    const languages = response.data;
+
+    const totalBytes = Object.values(languages).reduce(
+      (sum, value) => sum + value,
+      0
+    );
+
+    const formattedLanguages = Object.entries(languages).map(
+      ([name, bytes]) => ({
+        name,
+        percentage: ((bytes / totalBytes) * 100).toFixed(1),
+      })
+    );
+
+    res.json(formattedLanguages);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch languages",
+    });
+  }
+});
+
 const PORT = 5000;
 
 app.listen(PORT, () => {
