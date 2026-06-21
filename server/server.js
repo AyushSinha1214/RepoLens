@@ -38,10 +38,14 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
 
     res.json(repoData);
   } catch (error) {
-    res.status(404).json({
-      message: "Repository not found",
-    });
-  }
+  console.log("========== REPO ERROR ==========");
+  console.log(error.response?.data);
+  console.log(error.response?.status);
+
+  res.status(404).json({
+    message: "Repository not found",
+  });
+}
 });
 
 // Contributors Route
@@ -97,6 +101,28 @@ app.get("/api/languages/:owner/:repo", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch languages",
+    });
+  }
+});
+
+// Commit Activity Route
+app.get("/api/commits/:owner/:repo", async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`
+    );
+
+    const commitData = response.data.map((week, index) => ({
+      week: `Week ${index + 1}`,
+      commits: week.total,
+    }));
+
+    res.json(commitData);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch commit activity",
     });
   }
 });
