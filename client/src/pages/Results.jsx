@@ -1,26 +1,55 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import "../App.css";
 
 function Results() {
   const { owner, repo } = useParams();
 
   const [repoData, setRepoData] = useState(null);
+  const [contributors, setContributors] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [commitData, setCommitData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchRepo = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await axios.get(
+        const repoResponse = await axios.get(
           `http://localhost:5000/api/repo/${owner}/${repo}`
         );
 
-        setRepoData(response.data);
+        const contributorsResponse = await axios.get(
+          `http://localhost:5000/api/contributors/${owner}/${repo}`
+        );
+
+        const languagesResponse = await axios.get(
+          `http://localhost:5000/api/languages/${owner}/${repo}`
+        );
+
+        const commitsResponse = await axios.get(
+          `http://localhost:5000/api/commits/${owner}/${repo}`
+        );
+
+        setRepoData(repoResponse.data);
+        setContributors(contributorsResponse.data);
+        setLanguages(languagesResponse.data);
+
+        // Only last 12 weeks
+        setCommitData(commitsResponse.data.slice(-12));
       } catch (err) {
         setError("Repository not found");
       } finally {
@@ -28,7 +57,7 @@ function Results() {
       }
     };
 
-    fetchRepo();
+    fetchData();
   }, [owner, repo]);
 
   if (loading) {
@@ -57,11 +86,13 @@ function Results() {
           <span className="logo-dot"></span>
           RepoLens
         </Link>
+
         <div className="nav-links">
           <a href="#">Dashboard</a>
           <a href="#">Explore</a>
           <a href="#">Docs</a>
         </div>
+
         <div className="nav-actions">
           <button className="btn-outline">Login</button>
           <button className="btn-primary">Register</button>
@@ -72,11 +103,15 @@ function Results() {
         <aside className="sidebar">
           <div className="repo-header">
             <div className="repo-avatar">🔭</div>
+
             <p className="repo-name">{repoData.name}</p>
+
             <p className="repo-owner">{owner}</p>
+
             {repoData.description && (
               <p className="repo-desc">{repoData.description}</p>
             )}
+
             {repoData.language && (
               <div className="tag-row">
                 <span className="tag">{repoData.language}</span>
@@ -88,10 +123,13 @@ function Results() {
 
           <div className="meta-list">
             <div className="meta-item">
-              📅 Created {new Date(repoData.createdAt).toLocaleDateString()}
+              📅 Created{" "}
+              {new Date(repoData.createdAt).toLocaleDateString()}
             </div>
+
             <div className="meta-item">
-              🔄 Updated {new Date(repoData.updatedAt).toLocaleDateString()}
+              🔄 Updated{" "}
+              {new Date(repoData.updatedAt).toLocaleDateString()}
             </div>
           </div>
 
@@ -106,39 +144,130 @@ function Results() {
         </aside>
 
         <main className="main-panel">
-          <div className="section-title">Repository overview</div>
+          <div className="section-title">
+            Repository Overview
+          </div>
 
           <div className="overview-grid">
             <div className="overview-card">
               <p className="overview-label">Open Issues</p>
               <p className="overview-val">{repoData.issues}</p>
             </div>
+
             <div className="overview-card">
               <p className="overview-label">Total Forks</p>
               <p className="overview-val">{repoData.forks}</p>
             </div>
+
             <div className="overview-card">
               <p className="overview-label">Watchers</p>
               <p className="overview-val">{repoData.watchers}</p>
             </div>
+
             <div className="overview-card">
               <p className="overview-label">Stars</p>
               <p className="overview-val">{repoData.stars}</p>
             </div>
           </div>
 
-          <div className="section-title">About</div>
+          {/* Languages */}
+          <div className="section-title">
+            Languages
+          </div>
+
+          <div className="languages-card">
+            {languages.map((language) => (
+              <div
+                key={language.name}
+                className="language-row"
+              >
+                <span>{language.name}</span>
+                <span>{language.percentage}%</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Commit Activity */}
+          <div className="section-title">
+            Commit Activity (Last 12 Weeks)
+          </div>
+
+          <div className="chart-card">
+            <div className="chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={commitData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="commits"
+                    stroke="#6366f1"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Contributors */}
+          <div className="section-title">
+            Top Contributors
+          </div>
+
+          <div className="contributors-grid">
+            {contributors.map((user) => (
+              <a
+                key={user.login}
+                href={user.profile}
+                target="_blank"
+                rel="noreferrer"
+                className="contributor-card"
+              >
+                <img
+                  src={user.avatar}
+                  alt={user.login}
+                  className="contributor-avatar"
+                />
+
+                <div>
+                  <p className="contributor-name">
+                    {user.login}
+                  </p>
+
+                  <p className="contributor-count">
+                    {user.contributions} contributions
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          {/* About */}
+          <div className="section-title">
+            About
+          </div>
+
           <div className="about-card">
             <p>
-              {repoData.description || "No description provided for this repository."}
+              {repoData.description ||
+                "No description provided for this repository."}
             </p>
+
             <div className="about-meta">
-              <span className="tag">{repoData.language || "Unknown"}</span>
-              <span className="meta-text">
-                Created {new Date(repoData.createdAt).toLocaleDateString()}
+              <span className="tag">
+                {repoData.language || "Unknown"}
               </span>
+
               <span className="meta-text">
-                Last updated {new Date(repoData.updatedAt).toLocaleDateString()}
+                Created{" "}
+                {new Date(repoData.createdAt).toLocaleDateString()}
+              </span>
+
+              <span className="meta-text">
+                Last updated{" "}
+                {new Date(repoData.updatedAt).toLocaleDateString()}
               </span>
             </div>
           </div>
