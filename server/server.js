@@ -1,11 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+require("dotenv").config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const githubConfig = {
+  headers: {
+    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+  },
+};
 
 // Test Route
 app.get("/", (req, res) => {
@@ -20,8 +27,9 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}`
-    );
+  `https://api.github.com/repos/${owner}/${repo}`,
+  githubConfig
+);
 
     const repoData = {
       name: response.data.name,
@@ -39,8 +47,8 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
     res.json(repoData);
   } catch (error) {
   console.log("========== REPO ERROR ==========");
-  console.log(error.response?.data);
-  console.log(error.response?.status);
+  console.log("Status:", error.response?.status);
+  console.log("Data:", error.response?.data);
 
   res.status(404).json({
     message: "Repository not found",
@@ -54,8 +62,9 @@ app.get("/api/contributors/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}/contributors`
-    );
+  `https://api.github.com/repos/${owner}/${repo}/contributors`,
+  githubConfig
+);
 
     const contributors = response.data
       .slice(0, 5)
@@ -80,8 +89,9 @@ app.get("/api/languages/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}/languages`
-    );
+  `https://api.github.com/repos/${owner}/${repo}/languages`,
+  githubConfig
+);
 
     const languages = response.data;
 
@@ -111,8 +121,9 @@ app.get("/api/commits/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`
-    );
+  `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`,
+  githubConfig
+);
 
     const commitData = response.data.map((week, index) => ({
       week: `Week ${index + 1}`,
