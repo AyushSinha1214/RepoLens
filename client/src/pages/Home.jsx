@@ -1,51 +1,23 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../App.css";
 
 function Home() {
- const [repo, setRepo] = useState("");
-const [repoLink, setRepoLink] = useState("");
-const [activeTab, setActiveTab] = useState("individual");
+  const [repo, setRepo] = useState("");
+  const [repoLink, setRepoLink] = useState("");
+  const [activeTab, setActiveTab] = useState("individual");
 
-const [recentSearches, setRecentSearches] = useState(() => {
-  return JSON.parse(localStorage.getItem("recentSearches")) || [];
-});
+  const [recentSearches, setRecentSearches] = useState(() => {
+    return JSON.parse(localStorage.getItem("recentSearches")) || [];
+  });
+
   const navigate = useNavigate();
 
   const handleSearch = () => {
-  const [owner, repoName] = repo.split("/");
-
-  if (!owner || !repoName) {
-    alert("Enter repository in owner/repository format");
-    return;
-  }
-
-  const repoString = `${owner}/${repoName}`;
-
-  const updatedSearches = [
-    repoString,
-    ...recentSearches.filter((item) => item !== repoString),
-  ].slice(0, 5);
-
-  setRecentSearches(updatedSearches);
-
-  localStorage.setItem(
-    "recentSearches",
-    JSON.stringify(updatedSearches)
-  );
-
-  navigate(`/results/${owner}/${repoName}`);
-};
-  const handleLinkSearch = () => {
-  try {
-    const cleaned = repoLink
-      .replace("https://github.com/", "")
-      .replace(/\/$/, "");
-
-    const [owner, repoName] = cleaned.split("/");
+    const [owner, repoName] = repo.split("/");
 
     if (!owner || !repoName) {
-      alert("Enter a valid GitHub repository link");
+      alert("Enter repository in owner/repository format");
       return;
     }
 
@@ -57,36 +29,50 @@ const [recentSearches, setRecentSearches] = useState(() => {
     ].slice(0, 5);
 
     setRecentSearches(updatedSearches);
-
-    localStorage.setItem(
-      "recentSearches",
-      JSON.stringify(updatedSearches)
-    );
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
 
     navigate(`/results/${owner}/${repoName}`);
-  } catch {
-    alert("Enter a valid GitHub repository link");
-  }
-};
+  };
 
-const handleRecentClick = (repoString) => {
-  const [owner, repoName] = repoString.split("/");
+  const handleLinkSearch = () => {
+    try {
+      const cleaned = repoLink
+        .replace("https://github.com/", "")
+        .replace(/\/$/, "");
 
-  navigate(`/results/${owner}/${repoName}`);
-};
+      const [owner, repoName] = cleaned.split("/");
 
-const removeRecent = (repoString) => {
-  const updated = recentSearches.filter(
-    (item) => item !== repoString
-  );
+      if (!owner || !repoName) {
+        alert("Enter a valid GitHub repository link");
+        return;
+      }
 
-  setRecentSearches(updated);
+      const repoString = `${owner}/${repoName}`;
 
-  localStorage.setItem(
-    "recentSearches",
-    JSON.stringify(updated)
-  );
-};
+      const updatedSearches = [
+        repoString,
+        ...recentSearches.filter((item) => item !== repoString),
+      ].slice(0, 5);
+
+      setRecentSearches(updatedSearches);
+      localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
+
+      navigate(`/results/${owner}/${repoName}`);
+    } catch {
+      alert("Enter a valid GitHub repository link");
+    }
+  };
+
+  const handleRecentClick = (repoString) => {
+    const [owner, repoName] = repoString.split("/");
+    navigate(`/results/${owner}/${repoName}`);
+  };
+
+  const removeRecent = (repoString) => {
+    const updated = recentSearches.filter((item) => item !== repoString);
+    setRecentSearches(updated);
+    localStorage.setItem("recentSearches", JSON.stringify(updated));
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -104,7 +90,7 @@ const removeRecent = (repoString) => {
 
         <div className="nav-links">
           <a href="#">Dashboard</a>
-          <a href="#">Explore</a>
+          <Link to="/about">About Us</Link>
           <a href="#">Docs</a>
         </div>
 
@@ -129,8 +115,8 @@ const removeRecent = (repoString) => {
         </h1>
 
         <p>
-          RepoLens surfaces commit stats, contributor info, and repo health
-          in one clean view.
+          RepoLens surfaces commit stats, contributor info, and repo health in
+          one clean view.
         </p>
       </header>
 
@@ -204,37 +190,36 @@ const removeRecent = (repoString) => {
         )}
 
         <div className="recent">
-  <p className="recent-label">Recent</p>
+          <p className="recent-label">Recent</p>
 
-  <div className="chips">
-    {recentSearches.length === 0 ? (
-      <p style={{ color: "#64748b", fontSize: "12px" }}>
-        No recent searches yet
-      </p>
-    ) : (
-      recentSearches.map((item) => (
-        <div
-          key={item}
-          className="chip"
-          style={{ cursor: "pointer" }}
-          onClick={() => handleRecentClick(item)}
-        >
-          {item}
-
-          <button
-            className="chip-x"
-            onClick={(e) => {
-              e.stopPropagation();
-              removeRecent(item);
-            }}
-          >
-            ✕
-          </button>
+          <div className="chips">
+            {recentSearches.length === 0 ? (
+              <p style={{ color: "#64748b", fontSize: "12px" }}>
+                No recent searches yet
+              </p>
+            ) : (
+              recentSearches.map((item) => (
+                <div
+                  key={item}
+                  className="chip"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRecentClick(item)}
+                >
+                  {item}
+                  <button
+                    className="chip-x"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeRecent(item);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      ))
-    )}
-  </div>
-</div>
 
         <div className="results-preview">
           <p className="section-title">Results</p>

@@ -94,7 +94,7 @@ const [error, setError] = useState("");
 
         <div className="nav-links">
           <a href="#">Dashboard</a>
-          <a href="#">Explore</a>
+          <Link to="/about">About Us</Link>
           <a href="#">Docs</a>
         </div>
 
@@ -124,7 +124,31 @@ const [error, setError] = useState("");
             )}
           </div>
 
-          <hr className="divider" />
+          {/* Owner Card */}
+<div className="owner-card">
+  <img
+    src={repoData.owner?.avatar}
+    alt={repoData.owner?.login}
+    className="owner-avatar"
+  />
+
+  <h3>{repoData.owner?.login}</h3>
+
+  <p className="owner-type">
+    {repoData.owner?.type}
+  </p>
+
+  <a
+    href={repoData.owner?.profile}
+    target="_blank"
+    rel="noreferrer"
+    className="owner-link"
+  >
+    View Profile →
+  </a>
+</div>
+
+<hr className="divider" />
 
 <div className="health-card">
   <p className="health-title">
@@ -141,7 +165,6 @@ const [error, setError] = useState("");
 </div>
 
 <hr className="divider" />
-
 <div className="ai-card">
   <p className="ai-title">
     AI Insights
