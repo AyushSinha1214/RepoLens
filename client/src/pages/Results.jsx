@@ -16,49 +16,54 @@ function Results() {
   const { owner, repo } = useParams();
 
   const [repoData, setRepoData] = useState(null);
-  const [contributors, setContributors] = useState([]);
-  const [languages, setLanguages] = useState([]);
-  const [commitData, setCommitData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const [contributors, setContributors] = useState([]);
+const [languages, setLanguages] = useState([]);
+const [commitData, setCommitData] = useState([]);
+const [health, setHealth] = useState(null);
+const [insights, setInsights] = useState([]);
+
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const repoResponse = await axios.get(
-          `http://localhost:5000/api/repo/${owner}/${repo}`
-        );
+      const [
+        repoResponse,
+        contributorsResponse,
+        languagesResponse,
+        commitsResponse,
+        healthResponse,
+        insightsResponse,
+      ] = await Promise.all([
+        axios.get(`http://localhost:5000/api/repo/${owner}/${repo}`),
+        axios.get(`http://localhost:5000/api/contributors/${owner}/${repo}`),
+        axios.get(`http://localhost:5000/api/languages/${owner}/${repo}`),
+        axios.get(`http://localhost:5000/api/commits/${owner}/${repo}`),
+        axios.get(`http://localhost:5000/api/health/${owner}/${repo}`),
+        axios.get(`http://localhost:5000/api/insights/${owner}/${repo}`),
+      ]);
 
-        const contributorsResponse = await axios.get(
-          `http://localhost:5000/api/contributors/${owner}/${repo}`
-        );
+      setRepoData(repoResponse.data);
+      setContributors(contributorsResponse.data);
+      setLanguages(languagesResponse.data);
+      setCommitData(commitsResponse.data.slice(-12));
+      setHealth(healthResponse.data);
+      setInsights(insightsResponse.data);
+    } catch (err) {
+      console.log(err);
+      console.log(err.response?.data);
+      setError("Repository not found");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const languagesResponse = await axios.get(
-          `http://localhost:5000/api/languages/${owner}/${repo}`
-        );
-
-        const commitsResponse = await axios.get(
-          `http://localhost:5000/api/commits/${owner}/${repo}`
-        );
-
-        setRepoData(repoResponse.data);
-        setContributors(contributorsResponse.data);
-        setLanguages(languagesResponse.data);
-
-        // Only last 12 weeks
-        setCommitData(commitsResponse.data.slice(-12));
-      } catch (err) {
-        setError("Repository not found");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [owner, repo]);
+  fetchData();
+}, [owner, repo]);
 
   if (loading) {
     return (
@@ -121,17 +126,50 @@ function Results() {
 
           <hr className="divider" />
 
-          <div className="meta-list">
-            <div className="meta-item">
-              📅 Created{" "}
-              {new Date(repoData.createdAt).toLocaleDateString()}
-            </div>
+<div className="health-card">
+  <p className="health-title">
+    Repo Health
+  </p>
 
-            <div className="meta-item">
-              🔄 Updated{" "}
-              {new Date(repoData.updatedAt).toLocaleDateString()}
-            </div>
-          </div>
+  <div className="health-score">
+    {health?.score}/100
+  </div>
+
+  <div className="health-status">
+    {health?.status}
+  </div>
+</div>
+
+<hr className="divider" />
+
+<div className="ai-card">
+  <p className="ai-title">
+    AI Insights
+  </p>
+
+  {insights.map((item, index) => (
+    <div
+      key={index}
+      className="ai-insight"
+    >
+      • {item}
+    </div>
+  ))}
+</div>
+
+<hr className="divider" />
+
+<div className="meta-list">
+  <div className="meta-item">
+    📅 Created{" "}
+    {new Date(repoData.createdAt).toLocaleDateString()}
+  </div>
+
+  <div className="meta-item">
+    🔄 Updated{" "}
+    {new Date(repoData.updatedAt).toLocaleDateString()}
+  </div>
+</div>
 
           <a
             href={repoData.url}
@@ -274,7 +312,10 @@ function Results() {
         </main>
       </div>
     </div>
+    
   );
+  
 }
+
 
 export default Results;
