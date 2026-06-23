@@ -1,7 +1,9 @@
+require("dotenv").config();
+console.log("Token loaded:", process.env.GITHUB_TOKEN ? "YES" : "NO");
+
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-require("dotenv").config();
 
 const app = express();
 
@@ -16,9 +18,7 @@ const githubConfig = {
 
 // Test Route
 app.get("/", (req, res) => {
-  res.json({
-    message: "RepoLens Backend Running 🚀",
-  });
+  res.json({ message: "RepoLens Backend Running 🚀" });
 });
 
 // Repository Details Route
@@ -26,10 +26,13 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
   try {
     const { owner, repo } = req.params;
 
+    console.log("Owner:", owner);
+    console.log("Repo:", repo);
+
     const response = await axios.get(
-  `https://api.github.com/repos/${owner}/${repo}`,
-  githubConfig
-);
+      `https://api.github.com/repos/${owner}/${repo}`,
+      githubConfig
+    );
 
     const repoData = {
       name: response.data.name,
@@ -42,18 +45,26 @@ app.get("/api/repo/:owner/:repo", async (req, res) => {
       createdAt: response.data.created_at,
       updatedAt: response.data.updated_at,
       url: response.data.html_url,
+
+      // ✅ FIX: was incorrectly using `repo.owner` (a string) instead of `response.data.owner`
+      owner: {
+        login: response.data.owner.login,
+        avatar: response.data.owner.avatar_url,
+        profile: response.data.owner.html_url,
+        type: response.data.owner.type,
+      },
     };
 
     res.json(repoData);
   } catch (error) {
-  console.log("========== REPO ERROR ==========");
-  console.log("Status:", error.response?.status);
-  console.log("Data:", error.response?.data);
+    console.log("========== REPO ERROR ==========");
+    console.log("Message:", error.message);
+    console.log("Code:", error.code);
+    console.log("Status:", error.response?.status);
+    console.log("Data:", error.response?.data);
 
-  res.status(404).json({
-    message: "Repository not found",
-  });
-}
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Contributors Route
@@ -62,24 +73,20 @@ app.get("/api/contributors/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-  `https://api.github.com/repos/${owner}/${repo}/contributors`,
-  githubConfig
-);
+      `https://api.github.com/repos/${owner}/${repo}/contributors`,
+      githubConfig
+    );
 
-    const contributors = response.data
-      .slice(0, 5)
-      .map((user) => ({
-        login: user.login,
-        avatar: user.avatar_url,
-        contributions: user.contributions,
-        profile: user.html_url,
-      }));
+    const contributors = response.data.slice(0, 5).map((user) => ({
+      login: user.login,
+      avatar: user.avatar_url,
+      contributions: user.contributions,
+      profile: user.html_url,
+    }));
 
     res.json(contributors);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch contributors",
-    });
+    res.status(500).json({ message: "Failed to fetch contributors" });
   }
 });
 
@@ -89,9 +96,9 @@ app.get("/api/languages/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-  `https://api.github.com/repos/${owner}/${repo}/languages`,
-  githubConfig
-);
+      `https://api.github.com/repos/${owner}/${repo}/languages`,
+      githubConfig
+    );
 
     const languages = response.data;
 
@@ -109,9 +116,7 @@ app.get("/api/languages/:owner/:repo", async (req, res) => {
 
     res.json(formattedLanguages);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch languages",
-    });
+    res.status(500).json({ message: "Failed to fetch languages" });
   }
 });
 
@@ -132,15 +137,11 @@ app.get("/api/commits/:owner/:repo", async (req, res) => {
 
     res.json(commitData);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch commit activity",
-    });
+    res.status(500).json({ message: "Failed to fetch commit activity" });
   }
 });
 
-
-// ==================== HEALTH SCORE ROUTE ====================
-
+// Health Score Route
 app.get("/api/health/:owner/:repo", async (req, res) => {
   try {
     const { owner, repo } = req.params;
@@ -165,34 +166,23 @@ app.get("/api/health/:owner/:repo", async (req, res) => {
     const contributors = contributorsResponse.data.length;
 
     const recentCommits =
-      commitsResponse.data?.slice(-4).reduce(
-        (sum, week) => sum + week.total,
-        0
-      ) || 0;
+      commitsResponse.data?.slice(-4).reduce((sum, week) => sum + week.total, 0) || 0;
 
     let score = 0;
-
     score += Math.min(stars / 100, 40);
     score += Math.min(forks / 50, 20);
     score += Math.min(contributors * 2, 20);
     score += Math.min(recentCommits / 5, 20);
-
     score = Math.round(score);
 
     let status = "Poor";
-
     if (score >= 80) status = "Excellent";
     else if (score >= 60) status = "Good";
     else if (score >= 40) status = "Average";
 
-    res.json({
-      score,
-      status,
-    });
+    res.json({ score, status });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to calculate health score",
-    });
+    res.status(500).json({ message: "Failed to calculate health score" });
   }
 });
 
@@ -224,53 +214,42 @@ app.get("/api/insights/:owner/:repo", async (req, res) => {
     const contributors = contributorsResponse.data.length;
 
     const recentCommits =
-      commitsResponse.data?.slice(-4).reduce(
-        (sum, week) => sum + week.total,
-        0
-      ) || 0;
+      commitsResponse.data?.slice(-4).reduce((sum, week) => sum + week.total, 0) || 0;
 
-    // Community
     if (stars > 100) {
       insights.push("Strong community interest");
     } else {
       insights.push("Growing community presence");
     }
 
-    // Contributors
     if (contributors >= 5) {
       insights.push("Healthy contributor activity");
     } else {
       insights.push("Mostly maintained by a small team");
     }
 
-    // Commits
     if (recentCommits > 20) {
       insights.push("Active development detected");
     } else {
       insights.push("Development activity is moderate");
     }
 
-    // Language
     if (language) {
       insights.push(`${language} is the primary language`);
     }
 
-    // Forks
     if (forks > 50) {
       insights.push("Project is frequently forked");
     }
 
     res.json(insights);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to generate insights",
-    });
+    res.status(500).json({ message: "Failed to generate insights" });
   }
 });
-// ==================== SERVER ====================
 
+// Server
 const PORT = 5000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
