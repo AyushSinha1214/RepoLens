@@ -121,9 +121,9 @@ app.get("/api/commits/:owner/:repo", async (req, res) => {
     const { owner, repo } = req.params;
 
     const response = await axios.get(
-  `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`,
-  githubConfig
-);
+      `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`,
+      githubConfig
+    );
 
     const commitData = response.data.map((week, index) => ({
       week: `Week ${index + 1}`,
@@ -137,6 +137,137 @@ app.get("/api/commits/:owner/:repo", async (req, res) => {
     });
   }
 });
+
+
+// ==================== HEALTH SCORE ROUTE ====================
+
+app.get("/api/health/:owner/:repo", async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+
+    const repoResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`,
+      githubConfig
+    );
+
+    const contributorsResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contributors`,
+      githubConfig
+    );
+
+    const commitsResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`,
+      githubConfig
+    );
+
+    const stars = repoResponse.data.stargazers_count;
+    const forks = repoResponse.data.forks_count;
+    const contributors = contributorsResponse.data.length;
+
+    const recentCommits =
+      commitsResponse.data?.slice(-4).reduce(
+        (sum, week) => sum + week.total,
+        0
+      ) || 0;
+
+    let score = 0;
+
+    score += Math.min(stars / 100, 40);
+    score += Math.min(forks / 50, 20);
+    score += Math.min(contributors * 2, 20);
+    score += Math.min(recentCommits / 5, 20);
+
+    score = Math.round(score);
+
+    let status = "Poor";
+
+    if (score >= 80) status = "Excellent";
+    else if (score >= 60) status = "Good";
+    else if (score >= 40) status = "Average";
+
+    res.json({
+      score,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to calculate health score",
+    });
+  }
+});
+
+// AI Insights Route
+app.get("/api/insights/:owner/:repo", async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+
+    const repoResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`,
+      githubConfig
+    );
+
+    const contributorsResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contributors`,
+      githubConfig
+    );
+
+    const commitsResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`,
+      githubConfig
+    );
+
+    const insights = [];
+
+    const stars = repoResponse.data.stargazers_count;
+    const forks = repoResponse.data.forks_count;
+    const language = repoResponse.data.language;
+    const contributors = contributorsResponse.data.length;
+
+    const recentCommits =
+      commitsResponse.data?.slice(-4).reduce(
+        (sum, week) => sum + week.total,
+        0
+      ) || 0;
+
+    // Community
+    if (stars > 100) {
+      insights.push("Strong community interest");
+    } else {
+      insights.push("Growing community presence");
+    }
+
+    // Contributors
+    if (contributors >= 5) {
+      insights.push("Healthy contributor activity");
+    } else {
+      insights.push("Mostly maintained by a small team");
+    }
+
+    // Commits
+    if (recentCommits > 20) {
+      insights.push("Active development detected");
+    } else {
+      insights.push("Development activity is moderate");
+    }
+
+    // Language
+    if (language) {
+      insights.push(`${language} is the primary language`);
+    }
+
+    // Forks
+    if (forks > 50) {
+      insights.push("Project is frequently forked");
+    }
+
+    res.json(insights);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to generate insights",
+    });
+  }
+});
+// ==================== SERVER ====================
 
 const PORT = 5000;
 
