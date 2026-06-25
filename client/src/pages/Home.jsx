@@ -11,6 +11,8 @@ function Home() {
     return JSON.parse(localStorage.getItem("recentSearches")) || [];
   });
 
+   const user = JSON.parse(localStorage.getItem("user"));
+   
   const navigate = useNavigate();
 
   const handleSearch = () => {
@@ -89,15 +91,48 @@ function Home() {
         </div>
 
         <div className="nav-links">
-          <a href="#">Dashboard</a>
-          <Link to="/about">About Us</Link>
-          <a href="#">Docs</a>
-        </div>
+  <Link to="/dashboard">Dashboard</Link>
+  <Link to="/about">About Us</Link>
+  <a href="#">Docs</a>
+</div>
 
-        <div className="nav-actions">
-          <button className="btn-outline">Login</button>
-          <button className="btn-primary">Register</button>
-        </div>
+<div className="nav-actions">
+  {user ? (
+    <>
+      <span
+        style={{
+          color: "#fff",
+          fontWeight: "600",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {user.name}
+      </span>
+
+      <button
+        className="btn-outline"
+        onClick={() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.reload();
+        }}
+      >
+        Logout
+      </button>
+    </>
+  ) : (
+    <>
+      <Link to="/login" className="btn-outline">
+        Login
+      </Link>
+
+      <Link to="/register" className="btn-primary">
+        Register
+      </Link>
+    </>
+  )}
+</div>
       </nav>
 
       <header className="hero">
