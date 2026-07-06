@@ -2,7 +2,9 @@ const express = require("express");
 const axios = require("axios");
 
 const router = express.Router();
-
+router.get("/test", (req, res) => {
+  res.json({ message: "Repo route working!" });
+});
 const githubConfig = {
   headers: process.env.GITHUB_TOKEN
     ? {
