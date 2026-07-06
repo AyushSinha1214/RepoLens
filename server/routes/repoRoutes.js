@@ -4,9 +4,11 @@ const axios = require("axios");
 const router = express.Router();
 
 const githubConfig = {
-  headers: {
-    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-  },
+  headers: process.env.GITHUB_TOKEN
+    ? {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+      }
+    : {},
 };
 
 // Repository Details Route
