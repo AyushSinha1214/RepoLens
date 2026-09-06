@@ -119,7 +119,7 @@ npm run dev
 Backend:
 
 ```text
-http://localhost:5000
+`${API_URL}/api/auth/register`
 ```
 
 ### Terminal 2 — Frontend

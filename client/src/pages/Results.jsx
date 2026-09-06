@@ -12,6 +12,9 @@ import {
 } from "recharts";
 import "../App.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+
 function Results() {
   const { owner, repo } = useParams();
 
@@ -32,20 +35,20 @@ const [error, setError] = useState("");
       setError("");
 
       const [
-        repoResponse,
-        contributorsResponse,
-        languagesResponse,
-        commitsResponse,
-        healthResponse,
-        insightsResponse,
-      ] = await Promise.all([
-        axios.get(`http://localhost:5000/api/repo/${owner}/${repo}`),
-        axios.get(`http://localhost:5000/api/contributors/${owner}/${repo}`),
-        axios.get(`http://localhost:5000/api/languages/${owner}/${repo}`),
-        axios.get(`http://localhost:5000/api/commits/${owner}/${repo}`),
-        axios.get(`http://localhost:5000/api/health/${owner}/${repo}`),
-        axios.get(`http://localhost:5000/api/insights/${owner}/${repo}`),
-      ]);
+  repoResponse,
+  contributorsResponse,
+  languagesResponse,
+  commitsResponse,
+  healthResponse,
+  insightsResponse,
+] = await Promise.all([
+  axios.get(`${API_URL}/api/repo/${owner}/${repo}`),
+  axios.get(`${API_URL}/api/contributors/${owner}/${repo}`),
+  axios.get(`${API_URL}/api/languages/${owner}/${repo}`),
+  axios.get(`${API_URL}/api/commits/${owner}/${repo}`),
+  axios.get(`${API_URL}/api/health/${owner}/${repo}`),
+  axios.get(`${API_URL}/api/insights/${owner}/${repo}`),
+]);
 
       setRepoData(repoResponse.data);
       setContributors(contributorsResponse.data);
