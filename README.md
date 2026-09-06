@@ -1,180 +1,139 @@
-# RepoLens — GitHub Repository Analytics
+RepoLens 🔍
 
-> A full-stack GitHub analytics platform for exploring repository statistics, contributors, languages, commit activity, repository health, and AI-powered insights.
+RepoLens is a full-stack GitHub repository analytics platform that helps developers understand repositories through repository statistics, contributor insights, language distribution, commit activity, repository health, and AI-powered insights.
 
-## Tech Stack
+🚀 Live Demo
 
-* **Frontend:** React, Vite, React Router, Axios, Recharts
-* **Backend:** Node.js, Express.js
-* **API:** GitHub REST API
-* **Database:** MongoDB *(if authentication/database features are enabled)*
+https://repo-lens-theta.vercel.app
 
----
+✨ Features
 
-## Prerequisites
+🔎 Search and analyze public GitHub repositories
 
-Make sure you have these installed:
+📊 Repository statistics and metadata
 
-* [Node.js](https://nodejs.org/) — includes npm
-* [Git](https://git-scm.com/)
-* A **GitHub account**
-* **VS Code** *(recommended)*
+👥 Contributor analysis
 
-Check installations:
+💻 Programming language distribution
 
-```bash
-node -v
-npm -v
-git --version
-```
+📈 Commit activity visualization
 
----
+❤️ Repository health analysis
 
-## Installation
+🤖 AI-powered repository insights
 
-### 1. Clone the repository
+🔐 JWT-based user authentication
 
-```bash
+🕘 Recent repository searches using localStorage
+
+📱 Responsive user interface
+
+🛠️ Tech Stack
+
+Frontend
+
+React
+
+Vite
+
+Axios
+
+CSS
+
+Backend
+
+Node.js
+
+Express.js
+
+Axios
+
+JWT
+
+Database
+
+MongoDB
+
+Mongoose
+
+APIs & Deployment
+
+GitHub REST API
+
+Vercel
+
+Render
+
+🏗️ Architecture
+
+React + Vite (Vercel)
+        │
+        ▼
+Express.js API (Render)
+        │
+   ┌────┴─────┐
+   ▼          ▼
+GitHub API  MongoDB
+
+⚙️ Local Setup
+
+1. Clone the repository
+
 git clone https://github.com/AyushSinha1214/RepoLens.git
 cd RepoLens
-```
 
-### 2. Install dependencies
+2. Backend Setup
 
-**Frontend:**
-
-```bash
-cd client
+cd server
 npm install
-```
+npm start
 
-**Backend:**
+Create a .env file:
 
-```bash
-cd ../server
-npm install
-```
-
-`npm install` automatically installs all required packages from `package.json`.
-You do **not** need to install React, Express, Axios, Recharts, etc. separately.
-
----
-
-## GitHub API Token
-
-RepoLens uses the GitHub API to fetch repository data. A **GitHub Personal Access Token** is recommended to avoid API rate-limit issues.
-
-### Create a token
-
-Go to:
-
-**GitHub → Settings → Developer settings → Personal access tokens**
-
-Create a token with the minimum permissions required for the project.
-
-### Add the token
-
-Create:
-
-```text
-server/.env
-```
-
-Add:
-
-```env
 PORT=5000
+MONGO_URI=your_mongodb_uri
 GITHUB_TOKEN=your_github_token
-```
+JWT_SECRET=your_jwt_secret
+CLIENT_URL=http://localhost:5173
 
-**Never upload `.env` or your GitHub token to GitHub.**
-
-Make sure `.env` is included in `.gitignore`.
-
----
-
-## MongoDB
-
-MongoDB is only required if you are using RepoLens features that need a database, such as authentication or user accounts.
-
-If required, add your MongoDB connection string to `server/.env`:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-```
-
----
-
-## Run the Project
-
-RepoLens has a frontend and backend, so run them in **two terminals**.
-
-### Terminal 1 — Backend
-
-```bash
-cd RepoLens/server
-npm run dev
-```
-
-Backend:
-
-```text
-`${API_URL}/api/auth/register`
-```
-
-### Terminal 2 — Frontend
-
-```bash
-cd RepoLens/client
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
-
-Open **http://localhost:5173** in your browser.
-
----
-
-## Quick Setup
-
-```bash
-git clone https://github.com/AyushSinha1214/RepoLens.git
-cd RepoLens
+3. Frontend Setup
 
 cd client
 npm install
+npm run dev
 
-cd ../server
-npm install
-```
+Create a .env file:
 
-Then create `server/.env`, add your GitHub token, and run the frontend and backend in separate terminals.
+VITE_API_URL=http://localhost:5000
 
----
+Open:
 
-## Security
+http://localhost:5173
 
-Never commit or share:
+📁 Project Structure
 
-```text
-.env
-GitHub tokens
-MongoDB passwords
-API keys
-JWT secrets
-```
+RepoLens/
+├── client/          # React frontend
+├── server/          # Express backend
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+├── postman/         # API collection
+└── README.md
 
-If a token is accidentally exposed, **revoke it immediately and generate a new one**.
+🔗 Links
 
----
+Live Demo: https://repo-lens-theta.vercel.app
 
-## Author
+GitHub: https://github.com/AyushSinha1214/RepoLens
 
-**Ayush Sinha**
-B.Tech Computer Science Engineering
+📌 Future Improvements
 
-[GitHub](https://github.com/AyushSinha1214)
+Advanced repository comparison
+
+More detailed code quality metrics
+
+Improved AI-powered recommendations
+
+Performance optimization and caching
